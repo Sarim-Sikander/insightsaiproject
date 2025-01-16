@@ -1,0 +1,12 @@
+\.vscode
+
+**/*.pyc
+.env
+env.bak/
+venv.bak/
+
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+*/__pycache__/*.pyc

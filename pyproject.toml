@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = ["Sarim-Sikander <sarimsikander24@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.6"
+alembic = "^1.14.0"
+aiomysql = "^0.2.0"
+sqlalchemy = "^2.0.37"
+sqlalchemy-utils = "^0.41.2"
+uvicorn = "^0.34.0"
+pydantic-settings = "^2.7.1"
+pandas = "^2.2.3"
+pydantic = "^2.10.5"
+requests = "^2.32.3"
+elasticsearch = "^8.17.0"
+cryptography = "^44.0.0"
+sentence-transformers = "^3.3.1"
+elasticsearch-dsl = "^8.17.1"
+openai = "0.28"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.14.1"
+black = "^24.10.0"
+flake8 = "^7.1.1"
+isort = "^5.13.2"
+
+[tool.poetry.scripts]
+run-app = "main:run"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
