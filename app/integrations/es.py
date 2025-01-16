@@ -64,7 +64,7 @@ def index_documents_in_elasticsearch(documents):
                 "operational_cost_reduction": doc.operational_cost_reduction,
                 "embedding": generate_embedding(
                     f"{doc.title} {doc.content} {doc.conclusion}"
-                ),  # Add embedding
+                ), 
             },
         }
         for doc in documents

@@ -42,26 +42,22 @@ class DocumentController(BaseController[Documents]):
             "operational_cost_reduction": None,
         }
         try:
-            # Extract revenue
             revenue_match = re.search(r"Revenue[:\s]+\$([\d,\.]+)", content)
             if revenue_match:
                 metrics["revenue"] = float(revenue_match.group(1).replace(",", ""))
 
-            # Extract net profit
             net_profit_match = re.search(r"Net Profit[:\s]+\$([\d,\.]+)", content)
             if net_profit_match:
                 metrics["net_profit"] = float(
                     net_profit_match.group(1).replace(",", "")
                 )
 
-            # Extract revenue growth rate
             growth_rate_match = re.search(
                 r"Revenue Growth Rate[:\s]+([\d\.]+)%", content
             )
             if growth_rate_match:
                 metrics["revenue_growth_rate"] = float(growth_rate_match.group(1))
 
-            # Extract operational cost reduction
             cost_reduction_match = re.search(
                 r"Operational Cost Reduction[:\s]+([\d\.]+)%", content
             )
