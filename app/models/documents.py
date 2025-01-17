@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, Date, Float, Index, String, Text
+from sqlalchemy import Column, Date, Index, String, Text
 
 from app.core.database.session import Base
 

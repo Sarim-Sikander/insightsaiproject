@@ -1,13 +1,12 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.integrations.es import es, search_elasticsearch
-from app.integrations.llm import (
-    compute_numerical_score,
-    extract_and_enrich_documents,
-    generate_llm_response,
-)
+from app.controllers.elasticsearch import ESController
+from app.controllers.llms import LLMDocumentController
+from app.core.factory.factory import Factory
+from app.integrations.es import es
+from app.integrations.llm import compute_numerical_score
 from app.schemas.responses.llm import NQueryResponseSchema, QueryResponseSchema
 
 router = APIRouter()  # Initialize the API router for endpoints.
@@ -17,13 +16,15 @@ router = APIRouter()  # Initialize the API router for endpoints.
 async def query_documents(
     query: str = Query(..., description="The user query for RAG"),
     limit: int = Query(5, description="Number of documents to retrieve"),
+    llm_controller: LLMDocumentController = Depends(Factory().get_llm_controller),
+    es_controller: ESController = Depends(Factory().get_es_controller),
 ):
-    documents = search_elasticsearch(query, limit)
+    documents = es_controller.search_elasticsearch(query, limit)
 
     if not documents:
         raise HTTPException(status_code=404, detail="No relevant documents found.")
 
-    enriched_documents = extract_and_enrich_documents(documents)
+    enriched_documents = llm_controller.extract_and_enrich_documents(documents)
 
     context = "\n\n".join(
         f"Document {i+1}:\n{doc['content']}\nMetrics: Revenue: {doc['revenue']}, "
@@ -33,7 +34,9 @@ async def query_documents(
     )
 
     try:
-        llm_response = generate_llm_response(context=context, query=query)
+        llm_response = llm_controller.generate_llm_response(
+            context=context, query=query
+        )
     except RuntimeError as e:
         raise HTTPException(
             status_code=500, detail=f"Error generating LLM response: {e}"
@@ -66,6 +69,8 @@ async def query_numeric_documents(
         None, description="Maximum operational cost reduction filter"
     ),
     limit: int = Query(5, description="Number of documents to retrieve"),
+    llm_controller: LLMDocumentController = Depends(Factory().get_llm_controller),
+    es_controller: ESController = Depends(Factory().get_es_controller),
 ):
     """
     Query Elasticsearch with a focus on numerical filtering and scoring.
@@ -89,8 +94,7 @@ async def query_numeric_documents(
             detail="At least one numerical filter (min and max) must be provided.",
         )
 
-    # Perform the Elasticsearch query
-    response = search_elasticsearch(query, limit)
+    response = es_controller.search_elasticsearch(query, limit)
     if not response:
         raise HTTPException(status_code=404, detail="No relevant documents found.")
 
@@ -100,9 +104,8 @@ async def query_numeric_documents(
     if not documents:
         raise HTTPException(status_code=404, detail="No relevant documents found.")
 
-    enriched_documents = extract_and_enrich_documents(documents)
+    enriched_documents = llm_controller.extract_and_enrich_documents(documents)
 
-    # Apply numeric filtering based on extracted KPIs
     filtered_documents = [
         doc
         for doc in enriched_documents
@@ -187,7 +190,7 @@ async def query_numeric_documents(
         f"Document {idx+1}:\n{doc['content']}\n"
         for idx, (_, _, _, doc) in enumerate(ranked_documents[:limit])
     )
-    llm_response = generate_llm_response(context=context, query=query)
+    llm_response = llm_controller.generate_llm_response(context=context, query=query)
 
     return {
         "query": query,
@@ -215,20 +218,14 @@ async def health_check():
     - Checks the health of the Elasticsearch cluster.
     - Returns the status of the LLM integration.
     """
-    es_health = es.cluster.health()  # Get the health status of Elasticsearch.
-    llm_status = {"status": "available"}  # Assume the LLM is available.
+    es_health = es.cluster.health()
+    llm_status = {"status": "available"}
 
     return {
         "elasticsearch": {
-            "status": es_health.get(
-                "status"
-            ),  # The status of the Elasticsearch cluster.
-            "cluster_name": es_health.get(
-                "cluster_name"
-            ),  # The name of the Elasticsearch cluster.
-            "number_of_nodes": es_health.get(
-                "number_of_nodes"
-            ),  # The number of nodes in the cluster.
+            "status": es_health.get("status"),
+            "cluster_name": es_health.get("cluster_name"),
+            "number_of_nodes": es_health.get("number_of_nodes"),
         },
-        "llm": llm_status,  # The status of the LLM.
+        "llm": llm_status,
     }
