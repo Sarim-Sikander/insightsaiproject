@@ -16,11 +16,6 @@ class Documents(Base):
     content = Column(Text, nullable=True)
     conclusion = Column(Text, nullable=True)
 
-    revenue = Column(Float, nullable=True)
-    net_profit = Column(Float, nullable=True)
-    revenue_growth_rate = Column(Float, nullable=True)
-    operational_cost_reduction = Column(Float, nullable=True)
-
     __table_args__ = (
         Index(
             "ix_documents_content_topics_conclusion",

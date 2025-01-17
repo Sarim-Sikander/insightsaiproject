@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.controllers.documents import DocumentController
 from app.core.factory import Factory
+from app.models.documents import Documents
 from app.schemas.responses.document import DocumentSchema
 
 router = APIRouter()  # Initialize the API router for defining endpoints.
@@ -23,7 +24,9 @@ async def load_documents(
     - Cleans, preprocesses, and enriches the data using the document controller.
     - Creates documents in the database.
     """
-    data_path: LiteralString = os.path.join("app", "data", "Dataset.json")  # Path to the dataset file.
+    data_path: LiteralString = os.path.join(
+        "app", "data", "Dataset.json"
+    )  # Path to the dataset file.
 
     if not os.path.exists(data_path):  # Check if the file exists.
         raise HTTPException(status_code=404, detail="Data file not found.")
@@ -35,12 +38,9 @@ async def load_documents(
 
         # Clean and preprocess the data.
         processed_data = await document_controller.clean_and_preprocess_data(raw_data)
-        
-        # Add additional metrics to the processed data.
-        enriched_data = document_controller.add_metrics_to_documents(processed_data)
-        
+
         # Create each document in the database.
-        for item in enriched_data:
+        for item in processed_data:
             await document_controller.create(item)
 
         return {"status": "Documents loaded successfully"}  # Return success response.
@@ -55,7 +55,7 @@ async def get_document(
     document_controller: DocumentController = Depends(
         Factory().get_document_controller
     ),
-):
+) -> list[Documents]:
     """
     Endpoint to retrieve a specific document by its ID.
     - Checks if the document exists in the database.
@@ -76,13 +76,15 @@ async def get_all_documents(
     document_controller: DocumentController = Depends(
         Factory().get_document_controller
     ),
-):
+) -> list[Documents]:
     """
     Endpoint to retrieve all documents with pagination.
     - Supports skipping a certain number of records and limiting the number of results.
     - Returns a list of documents or raises a 404 error if no documents are found.
     """
-    documents = await document_controller.get_all(skip=skip, limit=limit)  # Retrieve all documents with pagination.
+    documents = await document_controller.get_all(
+        skip=skip, limit=limit
+    )  # Retrieve all documents with pagination.
     if not documents:  # If no documents are found, raise a 404 error.
         raise HTTPException(status_code=404, detail="No documents found.")
 

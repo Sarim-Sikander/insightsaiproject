@@ -1,7 +1,7 @@
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, validator
 
 
 class DocumentSchema(BaseModel):
@@ -12,10 +12,6 @@ class DocumentSchema(BaseModel):
     topics: Optional[str]
     content: Optional[str]
     conclusion: Optional[str]
-    revenue: Optional[float]
-    net_profit: Optional[float]
-    revenue_growth_rate: Optional[float]
-    operational_cost_reduction: Optional[float]
 
     @validator("date", pre=True, always=True)
     def format_date(cls, value):

@@ -3,8 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.api import router  # Import the API router for endpoints.
 from app.core.config import config  # Import configuration settings.
-from app.core.database.create_db import validate_database  # Function to validate the database.
-from app.core.middlewares.sqlalchemy import SQLAlchemyMiddleware  # Middleware for SQLAlchemy.
+from app.core.database.create_db import (
+    validate_database,
+)  # Function to validate the database.
+from app.core.middlewares.sqlalchemy import (
+    SQLAlchemyMiddleware,
+)  # Middleware for SQLAlchemy.
 
 
 def init_db():
@@ -32,8 +36,12 @@ def create_app() -> FastAPI:
         title="LLms Project API",  # Title of the API.
         description="Dashboard",  # Description for the API documentation.
         version="1.0.0",  # Version of the API.
-        docs_url=None if config.ENVIRONMENT == "production" else "/docs",  # Disable docs in production.
-        redoc_url=None if config.ENVIRONMENT == "production" else "/redoc",  # Disable Redoc in production.
+        docs_url=(
+            None if config.ENVIRONMENT == "production" else "/docs"
+        ),  # Disable docs in production.
+        redoc_url=(
+            None if config.ENVIRONMENT == "production" else "/redoc"
+        ),  # Disable Redoc in production.
     )
 
     # Add CORS middleware to allow cross-origin requests.
